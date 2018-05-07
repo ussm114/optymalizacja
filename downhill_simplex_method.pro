@@ -25,11 +25,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    fparser.cc \
+    fpoptimizer.cc \
+    resultswindow.cpp
 
 HEADERS += \
         mainwindow.h \
-        simplex.h
+        simplex.h \
+    fparser.hh \
+    fparser_gmpint.hh \
+    fparser_mpfr.hh \
+    fpconfig.hh \
+    resultswindow.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    resultswindow.ui

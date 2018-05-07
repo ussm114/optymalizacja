@@ -43,13 +43,28 @@ The order of the parameter is the same as in the vector<Type> init.
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include "fparser.hh"
 
-std::vector<double> Simplex(std::function<double(std::vector<double>)> f,                               //target function
+std::vector<double> Simplex(std::string function,                                                        //target function
                             int N,
                             std::vector<std::vector<double> > x =  std::vector<std::vector<double> >(), //x: The Simplex
                             double tol=1E8*std::numeric_limits<double>::epsilon(),                      //termination criteria
                             int iterations=1E5)                                                         //max iteration step number
 {
+    FunctionParser fparser;
+    std::string vars;
+    if (N==1)
+        vars = "x";
+    else
+    {
+        for (int i = 0; i < N-1; i++)
+            vars = vars + "x" + std::to_string(i+1) + ",";
+        vars = vars + "x" + std::to_string(N);
+    }
+
+    fparser.AddConstant("pi", 3.1415926535897932);
+    fparser.Parse(function, vars);
+
     const double a=1.0, b=1.0, g=0.5, h=0.5;   //coefficients
     //a: reflection  -> xr
     //b: expansion   -> xe
@@ -97,7 +112,7 @@ std::vector<double> Simplex(std::function<double(std::vector<double>)> f,       
     for(cnt=0; cnt<iterations; ++cnt){
 
         for(int i=0;i<N+1;i++){
-            vf[i]= f(x[i]);
+            vf[i]= fparser.Eval(x[i]);
         }
 
         x1=0; xn=0; xnp1=0;//find index of max, second max, min of vf.
@@ -145,7 +160,7 @@ std::vector<double> Simplex(std::function<double(std::vector<double>)> f,       
             xr[i]=xg[i]+a*(xg[i]-x[xnp1][i]);
         //reflection, xr found
 
-        double fxr=f(xr);//record function at xr
+        double fxr=fparser.Eval(xr);//record function at xr
 
         if(vf[x1]<=fxr && fxr<=vf[xn])
             std::copy(xr.begin(), xr.end(), x[xnp1].begin() );
@@ -155,7 +170,7 @@ std::vector<double> Simplex(std::function<double(std::vector<double>)> f,       
             std::vector<double> xe(N,0);
             for( int i=0; i<N; i++)
                 xe[i]=xr[i]+b*(xr[i]-xg[i]);
-            if( f(xe) < fxr )
+            if( fparser.Eval(xe) < fxr )
                 std::copy(xe.begin(), xe.end(), x[xnp1].begin() );
             else
                 std::copy(xr.begin(), xr.end(), x[xnp1].begin() );
@@ -166,7 +181,7 @@ std::vector<double> Simplex(std::function<double(std::vector<double>)> f,       
             std::vector<double> xc(N,0);
             for( int i=0; i<N; i++)
                 xc[i]=xg[i]+g*(x[xnp1][i]-xg[i]);
-            if( f(xc) < vf[xnp1] )
+            if( fparser.Eval(xc) < vf[xnp1] )
                 std::copy(xc.begin(), xc.end(), x[xnp1].begin() );
             else{
 
