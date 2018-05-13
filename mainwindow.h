@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <iterator>
 #include <cmath>
+#include <QtDataVisualization>
 #include "resultswindow.h"
+#include "fparser.hh"
 
 namespace Ui {
 class MainWindow;

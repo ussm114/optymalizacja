@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "simplex.h"
 
 using namespace std;
+using namespace QtDataVisualization;
 
 std::vector<QLineEdit *> simplexArr;
 std::vector<QDoubleSpinBox *> restrVals;
@@ -134,24 +134,53 @@ void MainWindow::on_calculateButton_clicked()
     if (ui->statusBar->currentMessage()==NULL)
     {
         vector<vector<double> > simplex;
-        int N = ui->spinBox->value();
+        int n = ui->spinBox->value();
+
+        QString tmp = ui->eps->text();
+        tmp.remove(0, 2);
+        double eps = pow(10, tmp.toInt());
+
+        tmp = ui->iter->text();
+        tmp.remove(0, 2);
+        int iter = pow(10, tmp.toInt());
 
         if (!isValid(simplexArr))
             ui->statusBar->showMessage("Invalid simplex provided");
         else
-            for (int i = 0; i < N+1; i++)
+            for (int i = 0; i < n+1; i++)
             {
-                for (int j = 0; j < N; j++)
-                    point.push_back(simplexArr[N*i+j]->text().toDouble());
+                for (int j = 0; j < n; j++)
+                    point.push_back(simplexArr[n*i+j]->text().toDouble());
                 simplex.push_back(point);
                 point.clear();
             }
 
+        /*Q3DSurface* surface = new Q3DSurface();
+        surface->setFlags(surface->flags() ^ Qt::FramelessWindowHint);
+
+        QSurfaceDataArray *data = new QSurfaceDataArray;
+        QSurfaceDataRow *dataRow1 = new QSurfaceDataRow;
+        QSurfaceDataRow *dataRow2 = new QSurfaceDataRow;
+
+        *dataRow1 << QVector3D(0.0f, 0.1f, 0.5f) << QVector3D(1.0f, 0.5f, 0.5f);
+        *dataRow2 << QVector3D(0.0f, 1.8f, 1.0f) << QVector3D(1.0f, 1.2f, 1.0f);
+        *data << dataRow1 << dataRow2;
+
+        QSurface3DSeries *series = new QSurface3DSeries;
+        series->dataProxy()->resetArray(data);
+        surface->addSeries(series);
+        QCustom3DItem *item = new QCustom3DItem();
+        item->setPosition(QVector3D(1,1,1));
+        //surface->addCustomItem(item);
+        surface->show();*/
+
         result = new resultswindow(this);
         result->show();
-        result->calculate(ui->comboBox->currentText().toStdString() ,ui->spinBox->value());
 
-        //printcon( Simplex(ui->comboBox->currentText().toStdString(), ui->spinBox->value()));
+        std::vector<double> restrvals;
+        for (int i = 0; i < restrVals.size(); i++)
+            restrvals.push_back(restrVals[i]->value());
+        result->calculate(ui->comboBox->currentText().toStdString(), n, simplex, eps, iter, restrvals);
     }
 }
 

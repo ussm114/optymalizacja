@@ -4,9 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += \
+        core gui \
+        datavisualization
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = downhill_simplex_method
 TEMPLATE = app
@@ -28,7 +30,8 @@ SOURCES += \
         mainwindow.cpp \
     fparser.cc \
     fpoptimizer.cc \
-    resultswindow.cpp
+    resultswindow.cpp \
+    qcustomplot.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -37,7 +40,8 @@ HEADERS += \
     fparser_gmpint.hh \
     fparser_mpfr.hh \
     fpconfig.hh \
-    resultswindow.h
+    resultswindow.h \
+    qcustomplot.h
 
 FORMS += \
         mainwindow.ui \
