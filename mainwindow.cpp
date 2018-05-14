@@ -7,30 +7,53 @@ using namespace QtDataVisualization;
 std::vector<QLineEdit *> simplexArr;
 std::vector<QDoubleSpinBox *> restrVals;
 
-bool isValid(std::vector<QLineEdit *> simplexArr)
+bool isValid(std::vector<QLineEdit *> simplexArr, int n)
 {
-    //cout << n << endl;
-    //cout << "dupa 123 test" << endl;
 
     for(QLineEdit *varSimplex : simplexArr)
         if (varSimplex->text() == "")
             return false;
-    int n = simplexArr.size();
-    if (n == 6) {
-        string newArray[6];
-        for(int i = 0; i < 6; i++) {
-            newArray[i] = simplexArr[i]->text().toStdString();
-        }
-        if (newArray[0] == newArray[2] && newArray[1] == newArray[3]) { //1 i 2 są identyczne
-            return false;
-        }
-        else if (newArray[0] == newArray[4] && newArray[1] == newArray[5]) { //1 i 3 są identyczne
-            return false;
-        }
-        else if (newArray[1] == newArray[4] && newArray[3] == newArray[5]) { //2 i 3 są identyczne
-            return false;
+
+
+
+    int wsp = n;
+    int punkty = n + 1;
+
+    for(int j1 = 0; j1 < punkty; j1++) {
+        for(int j2 = 0; j2 < punkty; j2++) {
+            if(j1 != j2) {
+                int licznikTakichSamych = 0;
+                for(int i = 0; i < wsp; i++) {
+                    if(simplexArr[i + wsp*j1]->text().toStdString() == simplexArr[i + wsp*j2]->text().toStdString()) {
+                        licznikTakichSamych++;
+                    }
+                    if (licznikTakichSamych == wsp) {
+                        return false;
+                    }
+                }
+
+            }
         }
     }
+
+//    sekcja próbna, co prawda działająca
+    //już niepotrzebna, te zagnieżdżone pętle działają dobrze
+//    int n = simplexArr.size();
+//    if (n == 6) {
+//        string newArray[6];
+//        for(int i = 0; i < 6; i++) {
+//            newArray[i] = simplexArr[i]->text().toStdString();
+//        }
+//        if (newArray[0] == newArray[2] && newArray[1] == newArray[3]) { //1 i 2 są identyczne
+//            return false;
+//        }
+//        else if (newArray[0] == newArray[4] && newArray[1] == newArray[5]) { //1 i 3 są identyczne
+//            return false;
+//        }
+//        else if (newArray[1] == newArray[4] && newArray[3] == newArray[5]) { //2 i 3 są identyczne
+//            return false;
+//        }
+//    }
 
     return true;
 }
@@ -155,6 +178,8 @@ void MainWindow::on_calculateButton_clicked()
     {
         vector<vector<double> > simplex;
         int n = ui->spinBox->value();
+        //cout << n << endl;
+        //cout << "a wiec jest n" << endl;
 
         QString tmp = ui->eps->text();
 
@@ -170,7 +195,7 @@ void MainWindow::on_calculateButton_clicked()
         tmp.remove(0, 2);
         int iter = pow(10, tmp.toInt());
 
-        if (!isValid(simplexArr)) {
+        if (!isValid(simplexArr, n)) {
             ui->statusBar->showMessage("Invalid simplex provided");
             return;
         }
