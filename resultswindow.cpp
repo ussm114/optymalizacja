@@ -6,6 +6,7 @@
 
 using namespace QtDataVisualization;
 
+
 double map(double x, double in_min, double in_max, double out_min, double out_max)
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -26,6 +27,9 @@ void plot(std::vector <std::vector <double>> simplex, QCustomPlot* customPlot)
     y.push_back(simplex[0][1]);
 
     newCurve->setData(x, y);
+
+    customPlot->rescaleAxes();
+    customPlot->replot();
 }
 
 resultswindow::resultswindow(QWidget *parent) :
@@ -40,8 +44,25 @@ resultswindow::~resultswindow()
     delete ui;
 }
 
-void resultswindow::calculate(std::string function, int n, std::vector <std::vector <double>> simplex, double eps, int iter, std::vector<double> restrVals)
+//a: reflection  -> xr
+//b: expansion   -> xe
+//g: contraction -> xc
+//h: full contraction to x1
+
+int resultswindow::calculate(std::string function, int n, std::vector <std::vector <double>> simplex, double eps, int iter, std::vector<double> restrVals, double a, double b, double g, double h)
 {
+
+    QStatusBar *statusBar = new QStatusBar;
+    QCustomPlot *customPlot = new QCustomPlot;
+    QSizePolicy *sizePolicy = new QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sizePolicy->setVerticalStretch(10);
+
+    customPlot->setSizePolicy(*sizePolicy);
+
+    this->layout()->addWidget(statusBar);
+    if (n==2)
+        this->layout()->addWidget(customPlot);
+
     this->function = function;
     this->n = n;
     QString result = "(";
@@ -64,8 +85,7 @@ void resultswindow::calculate(std::string function, int n, std::vector <std::vec
 
     if (n == 2)
     {
-        plot(simplex, ui->customPlot);
-        QCPColorMap *colorMap = new QCPColorMap(ui->customPlot->xAxis, ui->customPlot->yAxis);
+        QCPColorMap *colorMap = new QCPColorMap(customPlot->xAxis, customPlot->yAxis);
         std::vector<double> point;
 
         colorMap->data()->setSize(100, 100);
@@ -80,15 +100,8 @@ void resultswindow::calculate(std::string function, int n, std::vector <std::vec
             }
         colorMap->setGradient(QCPColorGradient::gpPolar);
         colorMap->rescaleDataRange(true);
+        plot(simplex, customPlot);
     }
-
-
-
-    const double a=1.0, b=1.0, g=0.5, h=0.5;   // coefficients
-    //a: reflection  -> xr
-    //b: expansion   -> xe
-    //g: contraction -> xc
-    //h: full contraction to x1
 
     std::vector<double> xcenter_old(n,0);   // simplex center * (N+1) N liczb z wart 0
     std::vector<double> xcenter_new(n,0);   // simplex center * (N+1)
@@ -99,6 +112,8 @@ void resultswindow::calculate(std::string function, int n, std::vector <std::vec
     //xnp1: f(xnp1) = max { f(x1), f(x2)...f(x_{n+1} }
     //xn:   f(xn)<f(xnp1) && f(xn)> all other f(x_i)
     int cnt = 0; //iteration step number
+
+    double diff = 0;
 
     // optimization begins
     for(cnt = 0; cnt < iter; ++cnt)
@@ -133,7 +148,7 @@ void resultswindow::calculate(std::string function, int n, std::vector <std::vec
         // xg found, xcenter_new updated
 
         // termination condition
-        double diff=0;          // calculate the difference of the simplex center
+        diff=0;          // calculate the difference of the simplex center
         for(int i = 0; i < n; i++)
             diff += fabs(xcenter_old[i]-xcenter_new[i]);
 
@@ -182,14 +197,9 @@ void resultswindow::calculate(std::string function, int n, std::vector <std::vec
             }
         } // contraction finished, xc is not used outside the scope  
 
-        //x.push_back(simplex[xnp1][0]);
-        //y.push_back(simplex[xnp1][1]);
         if (n == 2)
-            plot(simplex, ui->customPlot);
+            plot(simplex, customPlot);
     } // optimization is finished
-
-    if(cnt == iter)     //max number of iteration achieves before tol is satisfied
-        std::cout<<"Iteration limit achieves, result may not be optimal"<<std::endl;
 
     // %-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-
 
@@ -201,8 +211,15 @@ void resultswindow::calculate(std::string function, int n, std::vector <std::vec
     result.remove(result.size()-2, 2);
     result += ")";
 
-    ui->label->setText(result);
+    ui->resultlabel->setText(result);
+    ui->iterlabel->setText(QString::number(cnt));
+    ui->termlabel->setText(QString::number(diff/n));
 
-    ui->customPlot->rescaleAxes();
-    ui->customPlot->replot();
+    if(cnt == iter)     //max number of iteration achieves before tol is satisfied
+    {
+        statusBar->showMessage("Iteration limit achieves, result may not be optimal");
+        return 1;
+    }
+
+    return 0;
 }

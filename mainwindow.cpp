@@ -7,11 +7,31 @@ using namespace QtDataVisualization;
 std::vector<QLineEdit *> simplexArr;
 std::vector<QDoubleSpinBox *> restrVals;
 
-bool isValid(std::vector<QLineEdit *> simplexArr)
+bool isValid(std::vector<QLineEdit *> simplexArr, int n)
 {
+
     for(QLineEdit *varSimplex : simplexArr)
         if (varSimplex->text() == "")
             return false;
+
+    int wsp = n;
+    int punkty = n + 1;
+
+    for(int j1 = 0; j1 < punkty; j1++)
+        for(int j2 = 0; j2 < punkty; j2++)
+            if(j1 != j2)
+            {
+                int licznikTakichSamych = 0;
+                for(int i = 0; i < wsp; i++)
+                {
+                    if(simplexArr[i + wsp*j1]->text().toStdString() == simplexArr[i + wsp*j2]->text().toStdString())
+                        licznikTakichSamych++;
+                    if (licznikTakichSamych == wsp)
+                        return false;
+                }
+
+            }
+
     return true;
 }
 
@@ -29,7 +49,9 @@ void manageSimplex(int n, bool randSimplex, Ui::MainWindow *ui)
 
     if (n == 1)
     {
-        ui->gridLayout->addWidget(new QLabel(QString("x")), 0, 1);
+        label = new QLabel(QString::fromStdString("x"));
+        label->setAlignment(Qt::AlignHCenter);
+        ui->gridLayout->addWidget(label, 0, 1);
         ui->gridLayout->addWidget(new QLabel(QString("p1")), 1, 0);
         ui->gridLayout->addWidget(new QLabel(QString("p1")), 2, 0);
     }
@@ -39,6 +61,7 @@ void manageSimplex(int n, bool randSimplex, Ui::MainWindow *ui)
         {
             label = new QLabel(QString::fromStdString("x"+std::to_string(i+1)));
             label->setMaximumHeight(20);
+            label->setAlignment(Qt::AlignHCenter);
             ui->gridLayout->addWidget(label, 0, i+1);
         }
         for (int i = 0; i < n+1; i++)
@@ -80,6 +103,7 @@ void manageRestrictions(int n, Ui::MainWindow *ui)
     QHBoxLayout* newsublayout;
     QDoubleSpinBox* spinBox;
 
+    // clear all restrictions
     while (( item = ui->restrictions->takeAt(0)) != NULL )
     {
         sublayout = item->layout();
@@ -117,9 +141,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    //this->setFixedSize(500,500);
     manageSimplex(2, false, ui);
     manageRestrictions(2, ui);
+    this->setFixedSize(400, 450);
 }
 
 void MainWindow::on_calculateButton_clicked()
@@ -133,19 +157,28 @@ void MainWindow::on_calculateButton_clicked()
 
     if (ui->statusBar->currentMessage()==NULL)
     {
+        double a = ui->aSpinBox->value();
+        double b = ui->bSpinBox->value();
+        double g = ui->gSpinBox->value();
+        double h = ui->hSpinBox->value();
         vector<vector<double> > simplex;
         int n = ui->spinBox->value();
 
         QString tmp = ui->eps->text();
+
+
         tmp.remove(0, 2);
         double eps = pow(10, tmp.toInt());
 
         tmp = ui->iter->text();
+
         tmp.remove(0, 2);
         int iter = pow(10, tmp.toInt());
 
-        if (!isValid(simplexArr))
+        if (!isValid(simplexArr, n)) {
             ui->statusBar->showMessage("Invalid simplex provided");
+            return;
+        }
         else
             for (int i = 0; i < n+1; i++)
             {
@@ -155,47 +188,32 @@ void MainWindow::on_calculateButton_clicked()
                 point.clear();
             }
 
-        /*Q3DSurface* surface = new Q3DSurface();
-        surface->setFlags(surface->flags() ^ Qt::FramelessWindowHint);
-
-        QSurfaceDataArray *data = new QSurfaceDataArray;
-        QSurfaceDataRow *dataRow1 = new QSurfaceDataRow;
-        QSurfaceDataRow *dataRow2 = new QSurfaceDataRow;
-
-        *dataRow1 << QVector3D(0.0f, 0.1f, 0.5f) << QVector3D(1.0f, 0.5f, 0.5f);
-        *dataRow2 << QVector3D(0.0f, 1.8f, 1.0f) << QVector3D(1.0f, 1.2f, 1.0f);
-        *data << dataRow1 << dataRow2;
-
-        QSurface3DSeries *series = new QSurface3DSeries;
-        series->dataProxy()->resetArray(data);
-        surface->addSeries(series);
-        QCustom3DItem *item = new QCustom3DItem();
-        item->setPosition(QVector3D(1,1,1));
-        //surface->addCustomItem(item);
-        surface->show();*/
-
-        result = new resultswindow(this);
-        result->show();
-
         std::vector<double> restrvals;
         for (int i = 0; i < restrVals.size(); i++)
             restrvals.push_back(restrVals[i]->value());
-        result->calculate(ui->comboBox->currentText().toStdString(), n, simplex, eps, iter, restrvals);
+
+        result = new resultswindow(this);
+        if (n != 2)
+            result->setFixedSize(400, 100);
+        result->show();
+
+        result->calculate(ui->comboBox->currentText().toStdString(), n, simplex, eps, iter, restrvals, a, b, g, h);
     }
 }
 
 void MainWindow::on_spinBox_valueChanged(int value)
 {
-    manageSimplex(value, ui->randBox->isChecked(), ui);
+    manageSimplex(value, 0, ui);
     manageRestrictions(value, ui);
-}
-
-void MainWindow::on_randBox_stateChanged()
-{
-    manageSimplex(ui->spinBox->value(), ui->randBox->isChecked(), ui);
+    this->setFixedSize(400, 400 + value * 25);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_randButton_clicked()
+{
+    manageSimplex(ui->spinBox->value(), 1, ui);
 }

@@ -14,7 +14,7 @@ class resultswindow : public QDialog
 public:
     explicit resultswindow(QWidget *parent = 0);
     ~resultswindow();
-    void calculate(std::string function, int n, std::vector <std::vector <double>> simplex, double tol, int iter, std::vector<double> restrVals);
+    int calculate(std::string function, int n, std::vector <std::vector <double>> simplex, double tol, int iter, std::vector<double> restrVals, double a, double b, double g, double h);
 
 private:
     Ui::resultswindow *ui;

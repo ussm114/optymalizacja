@@ -29,7 +29,7 @@ public:
 private slots:
     void on_spinBox_valueChanged(int arg1);
     void on_calculateButton_clicked();
-    void on_randBox_stateChanged();
+    void on_randButton_clicked();
 
 private:
     Ui::MainWindow *ui;
