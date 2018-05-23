@@ -143,7 +143,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     manageSimplex(2, false, ui);
     manageRestrictions(2, ui);
-    this->setFixedSize(400, 450);
+    this->setFixedSize(500, 550);
 }
 
 void MainWindow::on_calculateButton_clicked()
@@ -194,7 +194,7 @@ void MainWindow::on_calculateButton_clicked()
 
         result = new resultswindow(this);
         if (n != 2)
-            result->setFixedSize(400, 100);
+            result->setFixedSize(500, 150);
         result->show();
 
         result->calculate(ui->comboBox->currentText().toStdString(), n, simplex, eps, iter, restrvals, a, b, g, h);
@@ -205,7 +205,7 @@ void MainWindow::on_spinBox_valueChanged(int value)
 {
     manageSimplex(value, 0, ui);
     manageRestrictions(value, ui);
-    this->setFixedSize(400, 400 + value * 25);
+    this->setFixedSize(500, 500 + value * 25);
 }
 
 MainWindow::~MainWindow()

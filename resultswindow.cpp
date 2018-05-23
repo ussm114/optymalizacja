@@ -197,6 +197,14 @@ int resultswindow::calculate(std::string function, int n, std::vector <std::vect
             }
         } // contraction finished, xc is not used outside the scope  
 
+        for (int i = 0; i < n; i++)
+        {
+            if (simplex[xnp1][i] < restrVals[2*i])
+                simplex[xnp1][i] = restrVals[2*i];
+            if (simplex[xnp1][i] > restrVals[2*i+1])
+                simplex[xnp1][i] = restrVals[2*i+1];
+        }
+
         if (n == 2)
             plot(simplex, customPlot);
     } // optimization is finished
@@ -212,6 +220,7 @@ int resultswindow::calculate(std::string function, int n, std::vector <std::vect
     result += ")";
 
     ui->resultlabel->setText(result);
+    ui->fvallabel->setText(QString::number(fparser.Eval(simplex[x1])));
     ui->iterlabel->setText(QString::number(cnt));
     ui->termlabel->setText(QString::number(diff/n));
 
